@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>五大栄養素クイズ</title>
+<style>
+  body {
+    font-family: "UD デジタル 教科書体", "Hiragino Maru Gothic Pro", "Meiryo", sans-serif;
+    background: #f5f5f5;
+    text-align: center;
+  }
+  #startScreen, #gameScreen, #resultScreen {
+    display: none;
+  }
+  button {
+    font-size: 24px;
+    padding: 15px 30px;
+    margin: 10px;
+    border-radius: 10px;
+    border: none;
+    cursor: pointer;
+  }
+  #questionImage {
+    width: 300px;
+    height: auto;
+    margin: 20px auto;
+  }
+  .choice {
+    display: block;
+    width: 300px;
+    margin: 10px auto;
+    background: #ffffff;
+  }
+  #scoreText {
+    font-size: 72px;
+    margin-top: 200px;
+  }
+  #feedback {
+    font-size: 120px;
+    height: 150px;
+  }
+  .blink {
+    animation: blink 0.5s infinite;
+    background: yellow;
+  }
+  @keyframes blink {
+    50% { opacity: 0.2; }
+  }
+</style>
+</head>
+<body>
+
+<div id="startScreen">
+  <h1>五大栄養素クイズ</h1>
+  <button id="startBtn">スタート</button>
+</div>
+
+<div id="gameScreen">
+  <h2 id="questionCount"></h2>
+  <img id="questionImage" src="" alt="食品画像">
+  <div id="feedback"></div>
+  <div id="choices"></div>
+</div>
+
+<div id="resultScreen">
+  <div id="scoreText"></div>
+</div>
+
+<audio id="correctSound" src="sounds/correct.mp3"></audio>
+
+<script>
+const choicesList = ["炭水化物","脂質","たんぱく質","無機質","無機質・ビタミン"];
+
+const foods = [
+  {name:"フレンチドレッシング", type:"脂質"},
+  {name:"マヨネーズ", type:"脂質"},
+  {name:"ごま油", type:"脂質"},
+  {name:"サラダ油", type:"脂質"},
+  {name:"バター", type:"脂質"},
+  {name:"ごま", type:"脂質"},
+  {name:"マーガリン", type:"脂質"},
+
+  {name:"ご飯", type:"炭水化物"},
+  {name:"じゃがいも", type:"炭水化物"},
+  {name:"さつまいも", type:"炭水化物"},
+  {name:"もち", type:"炭水化物"},
+  {name:"パン", type:"炭水化物"},
+  {name:"白玉粉", type:"炭水化物"},
+  {name:"うどん", type:"炭水化物"},
+  {name:"さとう", type:"炭水化物"},
+  {name:"スパゲッティ", type:"炭水化物"},
+
+  {name:"なっとう", type:"たんぱく質"},
+  {name:"ちくわ", type:"たんぱく質"},
+  {name:"魚", type:"たんぱく質"},
+  {name:"いか", type:"たんぱく質"},
+  {name:"肉", type:"たんぱく質"},
+  {name:"卵", type:"たんぱく質"},
+  {name:"ソーセージ", type:"たんぱく質"},
+  {name:"みそ", type:"たんぱく質"},
+  {name:"とうふ", type:"たんぱく質"},
+  {name:"あさり", type:"たんぱく質"},   <!-- ★追加 -->
+
+  {name:"ひじき", type:"無機質"},
+  {name:"わかめ", type:"無機質"},
+  {name:"こんぶ", type:"無機質"},
+  {name:"煮干し", type:"無機質"},
+  {name:"のり", type:"無機質"},
+  {name:"チーズ", type:"無機質"},
+  {name:"牛乳", type:"無機質"},
+  {name:"ヨーグルト", type:"無機質"},
+  {name:"しらす干し", type:"無機質"},
+
+  {name:"りんご", type:"無機質・ビタミン"},
+  {name:"キウイフルーツ", type:"無機質・ビタミン"},
+  {name:"いちご", type:"無機質・ビタミン"},
+  {name:"レモン", type:"無機質・ビタミン"},
+  {name:"キャベツ", type:"無機質・ビタミン"},
+  {name:"はくさい", type:"無機質・ビタミン"},
+  {name:"レタス", type:"無機質・ビタミン"},
+  {name:"しいたけ", type:"無機質・ビタミン"},
+  {name:"梅干し", type:"無機質・ビタミン"},
+  {name:"みかん", type:"無機質・ビタミン"},
+  {name:"たまねぎ", type:"無機質・ビタミン"},
+  {name:"だいこん", type:"無機質・ビタミン"},
+  {name:"根深ねぎ", type:"無機質・ビタミン"},
+  {name:"きゅうり", type:"無機質・ビタミン"},
+  {name:"にら", type:"無機質・ビタミン"},
+  {name:"トマト", type:"無機質・ビタミン"},
+  {name:"ブロッコリー", type:"無機質・ビタミン"},
+  {name:"パセリ", type:"無機質・ビタミン"},
+  {name:"ピーマン", type:"無機質・ビタミン"},
+  {name:"ほうれんそう", type:"無機質・ビタミン"},
+  {name:"にんじん", type:"無機質・ビタミン"},
+  {name:"かぼちゃ", type:"無機質・ビタミン"}
+];
+
+let quiz = [];
+let index = 0;
+let score = 0;
+let missed = false;
+
+const startScreen = document.getElementById("startScreen");
+const gameScreen = document.getElementById("gameScreen");
+const resultScreen = document.getElementById("resultScreen");
+
+startScreen.style.display = "block";
+
+document.getElementById("startBtn").onclick = () => {
+  quiz = foods.sort(() => 0.5 - Math.random()).slice(0,10);
+  index = 0;
+  score = 0;
+  startScreen.style.display = "none";
+  gameScreen.style.display = "block";
+  showQuestion();
+};
+
+function showQuestion(){
+  if(index >= 10){
+    endGame();
+    return;
+  }
+
+  missed = false;
+  document.getElementById("feedback").textContent = "";
+  document.getElementById("questionCount").textContent = `第${index+1}問 / 10`;
+
+  const q = quiz[index];
+  document.getElementById("questionImage").src = `images/${q.name}.png`;
+
+  const choicesDiv = document.getElementById("choices");
+  choicesDiv.innerHTML = "";
+
+  choicesList.forEach(c => {
+    const btn = document.createElement("button");
+    btn.textContent = c;
+    btn.className = "choice";
+    btn.onclick = () => checkAnswer(c, btn);
+    choicesDiv.appendChild(btn);
+  });
+}
+
+function checkAnswer(ans, btn){
+  const q = quiz[index];
+  const feedback = document.getElementById("feedback");
+
+  if(ans === q.type){
+    feedback.textContent = "○";
+    feedback.style.color = "red";
+    if(!missed) score += 10;
+    document.getElementById("correctSound").play();
+    setTimeout(() => {
+      index++;
+      showQuestion();
+    }, 800);
+  } else {
+    missed = true;
+    feedback.textContent = "？";
+    feedback.style.color = "black";
+    [...document.getElementsByClassName("choice")].forEach(b => {
+      if(b.textContent === q.type){
+        b.classList.add("blink");
+      }
+    });
+  }
+}
+
+function endGame(){
+  gameScreen.style.display = "none";
+  resultScreen.style.display = "block";
+  document.getElementById("scoreText").textContent = score + "点";
+
+  setTimeout(() => {
+    resultScreen.style.display = "none";
+    startScreen.style.display = "block";
+  }, 5000);
+}
+</script>
+
+</body>
+</html>
